@@ -25,15 +25,6 @@ for file in fileList:
     try:
         for r in json.loads(dl):
             user  = r[0]
-            
-            # only fixed this issue recently!
-            if user[-3:] == 'SC2':
-                user = user[0:-3]
-            elif user[-4:] == 'Misc':
-                user = user[0:-4]
-            elif user[-2:] == 'BW':
-                user = user[0:-2]
-            
             views = int(r[2])
 
             if user not in data:
@@ -43,23 +34,22 @@ for file in fileList:
                 
             v.append(views)
     except ValueError:
-        # fuck dat shit
+        # couldn't parse the file!
         print 'failed on file', file
             
     fh.close()
     maxts = file
 
-# plot that shit
+# initialise the plot
 fig  = pylab.figure(figsize=(15,8))
 
 ax = fig.add_subplot(111)
-
 ax.set_xlabel('time (minutes)')
 ax.set_ylabel('viewers')
 
 lines = []
 ltext = []
-ef = []
+ef = 0
 
 for user in data:
     # dont keep scrubs
@@ -83,7 +73,7 @@ for user in data:
 
             # if the delta is too big, finish this line
             if delta > 1.1 * (maxts - mints):
-                lines.append(ax.plot(x,y, '.'))#, linewidth=2.5))
+                lines.append(ax.plot(x,y, '.'))
                 ltext.append(user)
                 # we're done
                 x = []
@@ -92,21 +82,20 @@ for user in data:
                 lastx = rindex
             
             # and now add the points as usual
-            x.append(float(rindex)/60)
-            ef.append(float(rindex)/60)
+            xv = float(rindex) / 60
+            x.append(xv)
+            if xv > ef:
+                ef = xv
             y.append(data[user][i])
     
     # still any x left?
     if len(x) > 0:
-        lines.append(ax.plot(x,y, '.'))#, linewidth=2.5))
+        lines.append(ax.plot(x,y, '.'))
         ltext.append(user)
     
-#lines.append(ax.plot(x,y, linewidth=2.5))
+# set the appropriate x/y ticks
 ax.set_yticks(map(lambda x: 2000 * x, range(0,max(v)/2000 + 1)))
-ax.set_xticks(range(0, int(max(ef))+30,30))
-
-# highest x (minutes) is ef
-#map(lambda x: 3600 * x, range(0,(maxts-mints)/3600)))
+ax.set_xticks(range(0, int(ef)+30,30))
 fig.legend(lines,ltext)
 fig.show()
 fig.savefig('graph.png')
