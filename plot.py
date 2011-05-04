@@ -49,14 +49,14 @@ ax.set_ylabel('viewers')
 
 lines = []
 ef = 0
+kuser = []
 
 for user in data:
     # dont keep scrubs - not interesting
     if max(data[user].values()) < 750 or \
        max(data[user].keys())-min(data[user].keys()) < 0.2 * (maxts - mints):
-        data[user] = None
         continue
-    
+
     x = []
     y = []
 
@@ -77,10 +77,11 @@ for user in data:
     # do we have anything to plot?
     if len(x) > 0:
         lines.append(ax.plot(x,y, '.'))
+        kuser.append(user)
     
 # set the appropriate x/y ticks
 ax.set_yticks(map(lambda x: 2000 * x, range(0,max(v)/2000 + 1)))
 ax.set_xticks(range(0, int(ef)+30,30))
-fig.legend(lines,data.keys())
+fig.legend(lines,kuser)
 fig.show()
 fig.savefig('graph.png')
