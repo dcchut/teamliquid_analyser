@@ -48,54 +48,39 @@ ax.set_xlabel('time (minutes)')
 ax.set_ylabel('viewers')
 
 lines = []
-ltext = []
 ef = 0
 
 for user in data:
-    # dont keep scrubs
+    # dont keep scrubs - not interesting
     if max(data[user].values()) < 750 or \
        max(data[user].keys())-min(data[user].keys()) < 0.2 * (maxts - mints):
+        data[user] = None
         continue
     
     x = []
     y = []
-    lastx = fileList[0] - mints
-    
+
     for i in fileList[1:]:
         rindex = i - mints
         
         if i in data[user]:
-            if lastx is False:
-                delta = 0
-            else:
-                # delta
-                delta = rindex - lastx
-
-            # if the delta is too big, finish this line
-            if delta > 1.1 * (maxts - mints):
-                lines.append(ax.plot(x,y, '.'))
-                ltext.append(user)
-                # we're done
-                x = []
-                break
-            else:
-                lastx = rindex
-            
             # and now add the points as usual
             xv = float(rindex) / 60
             x.append(xv)
+            y.append(data[user][i])
+                    
+            # keep track of the largest plotted x value
+            # so we can scale our x-axis appropriately
             if xv > ef:
                 ef = xv
-            y.append(data[user][i])
-    
-    # still any x left?
+
+    # do we have anything to plot?
     if len(x) > 0:
         lines.append(ax.plot(x,y, '.'))
-        ltext.append(user)
     
 # set the appropriate x/y ticks
 ax.set_yticks(map(lambda x: 2000 * x, range(0,max(v)/2000 + 1)))
 ax.set_xticks(range(0, int(ef)+30,30))
-fig.legend(lines,ltext)
+fig.legend(lines,data.keys())
 fig.show()
 fig.savefig('graph.png')
